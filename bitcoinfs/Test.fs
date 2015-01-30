@@ -29,11 +29,15 @@ open System.IO
 open System.Text
 open FSharp.Data
 open Org.BouncyCastle.Utilities.Encoders
-open NUnit.Framework
+open Microsoft.VisualStudio.TestTools.UnitTesting
 open FsUnit
+open FsUnit.MsTest
+open NHamcrest.Core
 open Protocol
 open Script
 open Checks
+
+let testsDir = "c:\\github\\bitcoin\\src\\test\\data\\"
 
 let opCodes = 
     Map.ofSeq [
@@ -209,43 +213,62 @@ let parseScript (scriptString: string) =
     parseOne tokens
     scriptBytes.ToArray()
 
-[<TestFixture>]
+[<TestClass>]
 type ``Given a ScriptRuntime`` ()=
-    let validJson = JsonValue.Load(__SOURCE_DIRECTORY__ + "/data/script_valid.json")
-    let invalidJson = JsonValue.Load(__SOURCE_DIRECTORY__ + "/data/script_invalid.json")
+    let validJson = JsonValue.Load( testsDir + "script_valid.json")
+    let invalidJson = JsonValue.Load( testsDir + "script_invalid.json")
 
-    let evalScript (sigScript: string) (pubScript: string) = 
+    let evalScript (sigScript: string) (pubScript: string) (flags: string) = 
         let interpreter = new ScriptRuntime(fun a _ -> a)
-        interpreter.Verify(parseScript sigScript, parseScript pubScript)
+        interpreter.Verify(parseScript sigScript, parseScript pubScript, (String.split [| ',' |] flags) )
 
-    [<Test>] 
+    [<TestMethod>] 
     member x.``when evaluating scripts from a valid jsonfile, I should not fail.`` () =
         validJson.AsArray() |> Array.iteri(fun i s ->
             if i = 278 then ignore()
             match s with 
             | JsonValue.Array arr ->
-                let inScript = arr.[0].AsString()
-                let outScript = arr.[1].AsString()
-                evalScript inScript outScript |> should equal true
-            )
+                if arr.Length > 1 then
+                    let inScript = arr.[0].AsString()
+                    let outScript = arr.[1].AsString()
+                    let flags = if arr.Length > 2 then arr.[2].AsString() else ""
+                    if not( evalScript inScript outScript flags) then // debugging assist
+                        evalScript inScript outScript flags |> should equal true
+                else ()
+            | _ -> failwith "wtf"
+            ) 
 
-    [<Test>] 
+    [<TestMethod>] 
     member x.``when evaluating scripts from a invalid jsonfile, I should fail.`` () =
+        let mutable ln = 0
+        let mutable errs = []
         for s in invalidJson.AsArray() do
-            match s with 
-            | JsonValue.Array arr ->
-                let inScript = arr.[0].AsString()
-                let outScript = arr.[1].AsString()
-                evalScript inScript outScript |> should equal false
-
+            ln <- ln + 1
+            try
+                match s with 
+                | JsonValue.Array arr ->
+                    if arr.Length > 1 then
+                        let inScript = arr.[0].AsString()
+                        let outScript = arr.[1].AsString()
+                        let flags = if arr.Length > 2 then arr.[2].AsString() else ""
+                        //evalScript inScript outScript flags |> should equal false
+                        if evalScript inScript outScript flags then // debugging assist
+                            evalScript inScript outScript flags |> ignore
+                            errs <- ln.ToString() + ": " + s.ToString() :: errs
+                    else ()
+                | _ -> failwith "wtf"
+            with _ ->
+                errs <- "Untrapped exception - " + ln.ToString() + ": " + s.ToString() :: errs
+        if errs.Length > 0 then
+            failwith (String.Join("\n",errs))
 (**
 ## Signature hash tests
 *)
-[<TestFixture>]
+[<TestClass>]
 type ``Given a Tx Hashing function`` ()=
-    let validJson = JsonValue.Load(__SOURCE_DIRECTORY__ + "/data/sighash.json")
+    let validJson = JsonValue.Load( testsDir + "sighash.json")
 
-    [<Test>] 
+    [<TestMethod>] 
     member x.``when evaluating hashes from a valid json file, I should not fail.`` () =
         for s in validJson.AsArray() do
             match s with
@@ -266,12 +289,12 @@ type ``Given a Tx Hashing function`` ()=
 (**
 ## Transaction parsing tests
 *)
-[<TestFixture>]
+[<TestClass>]
 type ``Given a Tx`` ()=
-    let validJson = JsonValue.Load(__SOURCE_DIRECTORY__ + "/data/tx_valid.json")
-    let invalidJson = JsonValue.Load(__SOURCE_DIRECTORY__ + "/data/tx_invalid.json")
+    let validJson = JsonValue.Load( testsDir + "tx_valid.json")
+    let invalidJson = JsonValue.Load( testsDir + "tx_invalid.json")
 
-    [<Test>] 
+    [<TestMethod>] 
     member x.``when verifying transactions from a valid json file, I should not fail.`` () =
         for s in validJson.AsArray() do
             match s with
@@ -290,12 +313,12 @@ type ``Given a Tx`` ()=
                         let outpoint = txIn.PrevOutPoint
                         let script = prevOutputsMap.[outpoint]
                         let scriptInterpreter = new ScriptRuntime(computeTxHash tx i)
-                        scriptInterpreter.Verify(txIn.Script, script)
+                        scriptInterpreter.Verify(txIn.Script, script, Array.empty)
                     ) |> Seq.forall id
                 (flagsJ.AsString() = "NONE" || verified) |> should equal true
             | _ -> ignore()
 
-    [<Test>] 
+    [<TestMethod>] 
     member x.``when verifying transactions from an invalid json file, I should not fail.`` () =
         for s in invalidJson.AsArray() do
             match s with
@@ -314,7 +337,7 @@ type ``Given a Tx`` ()=
                         let outpoint = txIn.PrevOutPoint
                         let script = prevOutputsMap.[outpoint]
                         let scriptInterpreter = new ScriptRuntime(computeTxHash tx i)
-                        scriptInterpreter.Verify(txIn.Script, script)
+                        scriptInterpreter.Verify(txIn.Script, script, Array.empty)
                     ) |> Seq.forall id
                 let ok = (flagsJ.AsString() = "NONE" || verified)
                 if ok then
@@ -324,11 +347,11 @@ type ``Given a Tx`` ()=
 (**
 ## Canonical signature tests
 *)
-[<TestFixture>]
+[<TestClass>]
 type ``Given a Signature file`` ()=
-    let validJson = JsonValue.Load(__SOURCE_DIRECTORY__ + "/data/sig_canonical.json")
+    let validJson = JsonValue.Load (testsDir + "sig_canonical.json")
 
-    [<Test>] 
+    [<TestMethod>] 
     member x.``when verifying signatures from a valid json file, I should not fail.`` () =
         for s in validJson.AsArray() do
             let signature = Hex.Decode (s.AsString())

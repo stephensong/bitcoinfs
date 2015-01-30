@@ -299,14 +299,14 @@ type LevelDBUTXOAccessor(db: DB) =
 
     let deleteUTXO (outpoint: OutPoint) = 
         let k = outpoint.ToByteArray()
-        db.Delete(wo, k)
+        db.Delete(k, wo)
     let addUTXO (outpoint: OutPoint) (utxo: UTXO) = 
         let k = outpoint.ToByteArray()
         let v = utxo.ToByteArray()
-        db.Put(wo, k, v)
+        db.Put(k, v, wo)
     let getUTXO (outpoint: OutPoint) =
         let k = outpoint.ToByteArray()
-        let v = db.Get(ro, k)
+        let v = db.Get(k, ro)
         if v <> null 
         then Some(ParseByteArray v UTXO.Parse)
         else 
@@ -316,13 +316,13 @@ type LevelDBUTXOAccessor(db: DB) =
     // Seek into the database and iterate as long as the key has a prefix equal to the tx hash
     // It eliminates the need to keep an additional counter
     let getCount (txHash: byte[]) =
-        let cursor = new Iterator(db, ro)
+        let cursor = db.CreateIterator(ro)
         cursor.Seek(txHash)
         let mutable count = 0
         let rec getCountInner (count: int): int = 
-            if cursor.IsValid then
-                let k = cursor.Key
-                let hash = k |> Array.take txHash.Length // first part of the key is the txhash
+            if cursor.IsValid() then
+                let k = cursor.Key()
+                let hash = k.[ .. txHash.Length - 1] // first part of the key is the txhash
                 if hash = txHash 
                 then 
                     cursor.Next()
@@ -336,7 +336,7 @@ type LevelDBUTXOAccessor(db: DB) =
     new() = 
         let options = new Options()
         options.CreateIfMissing <- true
-        new LevelDBUTXOAccessor(DB.Open(options, sprintf "%s/utxo" baseDir))
+        new LevelDBUTXOAccessor(new DB(options, sprintf "%s/utxo" baseDir))
 
     interface IUTXOAccessor with
         member x.DeleteUTXO(outpoint) = deleteUTXO outpoint

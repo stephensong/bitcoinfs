@@ -28,7 +28,7 @@ and I will just mention the main charateristics of this language. For more detai
 
 Bitcoin script is a stack based primary arithmetic language. There are operators to push data to the stack and to
 perform operations on the elements of the stack. The stack is made of arbitrary long binary strings. When used for
-math operations, these byte strings are considered little endian big integers.
+math operations, these byte strings are considered litle endian big integers.
 
 The language has IF/THEN/ELSE but no loops. It is therefore non Turing complete and program execution time is bounded.
 Besides the classic operators, it has cryptographic functions such as hashing operators and signature verification.
@@ -140,8 +140,10 @@ have incompatibilities.
 *)
 let ECDSACheck (txHash: byte[], pub: byte[], signature: byte[]) = 
     if signature.Length > 0 && pub.Length > 0 then // 0 length signature or pub keys crash the library
-        let result = Signatures.Verify(txHash, signature, pub)
-        result = Signatures.VerifyResult.Verified
+        try
+            let result = Signatures.Verify(txHash, signature, pub)
+            result = Signatures.VerifyResult.Verified
+        with _ -> false
     else false
     (* // The Bouncy Castle way
     let signer = new ECDsaSigner()
@@ -503,7 +505,7 @@ order as the pub keys.
 
         let checkOneSig (pubs: byte[] list) (signature: byte[]) = 
             pubs |> List.tryFindIndex (fun pub -> checksigInner pubScript pub signature)
-            |> Option.map (fun index -> pubs |> List.splitAt index |> snd |> List.tail)
+            |> Option.map (fun index -> pubs |> List.take (* was splitAt *) index |> snd |> List.tail)
                 
         sigs |> Option.foldM checkOneSig (pubs |> Array.toList) |> Option.isSome
 
@@ -515,7 +517,7 @@ if it's data or instruction. If it's data, one or more bytes are then read. If i
 byte. It's an important trick. When the code must be skipped because it is on the wrong side of a If/then/else, 
 the function can quickly jump to the next code.
 *)
-    let eval (pushOnly: bool) (script: byte[]) =
+    let eval (pushOnly: bool) (script: byte[]) (flags: string[]) =
         codeSep <- 0
         if script.Length > maxScriptSize then fail()
         let ms = new MemoryStream(script)
@@ -578,7 +580,8 @@ is flipped only if the enclosing block isn't skipped too. The parser knows that 
                 elif c = 104 then
                     checkDepth ifStack 1
                     skipping <- ifStack.Pop()
-                elif c >= 176 && c <= 185 then ignore()
+                elif c >= 176 && c <= 185 then 
+                    if Array.IndexOf(flags,"DISCOURAGE_UPGRADABLE_NOPS") < 0 then ignore() else fail()
                 elif 
                     match c with
                     | 101 | 102 
@@ -769,22 +772,25 @@ TODO: Enforce strict BIP16 rules: No other opcode other than push data and redee
 *)
     let evalP2SH (script: byte[]) =
         evalStack.Clear()
-        eval true script
+        eval true script (Array.empty)
         checkDepth evalStack 1
         let redeemScript = evalStack.Pop()
-        eval false redeemScript
+        eval false redeemScript (Array.empty)
         popAsBool()
 
     let redeemScript (script: byte[]) =
         let (_, _, data) = removeData script (fun _ -> true)
         data |> Array.last
 
-    member x.Verify(inScript: byte[], outScript: byte[]) = 
+    member x.Verify(inScript: byte[], outScript: byte[]) =
+        x.Verify(inScript, outScript, Array.empty) 
+
+    member x.Verify(inScript: byte[], outScript: byte[], flags: string[]) = 
         try
-            eval false inScript
+            eval false inScript flags
             altStack.Clear() // bitcoin core does that
             ifStack.Clear() // 
-            eval false outScript
+            eval false outScript flags
             let res = popAsBool()
             res && (not (isP2SH outScript) || evalP2SH inScript)
         with
@@ -795,4 +801,3 @@ TODO: Enforce strict BIP16 rules: No other opcode other than push data and redee
     static member IsP2SH (script: byte[]) = isP2SH script
 
     member x.GetData (script: byte[]) = getData script
-

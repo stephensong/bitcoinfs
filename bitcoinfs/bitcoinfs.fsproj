@@ -78,15 +78,14 @@
     <Content Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Db.fs" />
+    <Compile Include="Script.fs" />
     <Compile Include="Peer.fs" />
     <Compile Include="Tracker.fs" />
-    <Compile Include="Script.fs" />
     <Compile Include="Mempool.fs" />
     <Compile Include="Checks.fs" />
     <Compile Include="Blockchain.fs" />
     <Compile Include="Wallet.fs" />
     <Compile Include="Test.fs" />
-    <Compile Include="FsUnitSample.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto">

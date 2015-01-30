@@ -1,18 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d073c2ce-3111-40ef-a2be-d50bed1df9fe</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>bitcoinf</RootNamespace>
-    <AssemblyName>bitcoinf</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>bitcoinf</Name>
+    <ProjectGuid>16d03b08-c0d3-4aff-97c5-3454bce0faa4</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>bitcoinfs</RootNamespace>
+    <AssemblyName>bitcoinfs</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
+    <Name>bitcoinfs</Name>
+    <NuGetPackageImportStamp>9df96324</NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,9 +23,8 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Debug\bitcoinfs.XML</DocumentationFile>
     <PlatformTarget>x64</PlatformTarget>
-    <DocumentationFile>bin\Debug\bitcoinf.XML</DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,12 +33,31 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\bitcoinf.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Release\bitcoinfs.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Debug\bitcoinfs.XML</DocumentationFile>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Release\bitcoinfs.XML</DocumentationFile>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '11.0'">
@@ -54,129 +73,127 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
+    <Compile Include="Protocol.fs" />
     <Content Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Protocol.fs" />
-    <Compile Include="Script.fs" />
     <Compile Include="Db.fs" />
     <Compile Include="Peer.fs" />
     <Compile Include="Tracker.fs" />
+    <Compile Include="Script.fs" />
     <Compile Include="Mempool.fs" />
     <Compile Include="Checks.fs" />
     <Compile Include="Blockchain.fs" />
     <Compile Include="Wallet.fs" />
     <Compile Include="Test.fs" />
-    <Compile Include="Main.fs" />
-    <None Include="SqlServerTypes\x86\SqlServerSpatial110.dll" />
-    <None Include="SqlServerTypes\x64\SqlServerSpatial110.dll" />
+    <Compile Include="FsUnitSample.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto">
-      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+      <HintPath>packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ExtCore">
-      <HintPath>..\packages\ExtCore.0.8.45\lib\net45\ExtCore.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\ExtCore.0.8.45\lib\net45\ExtCore.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data">
-      <HintPath>..\packages\FSharp.Data.2.1.0\lib\net40\FSharp.Data.dll</HintPath>
+      <HintPath>packages\FSharp.Data.2.1.1\lib\net40\FSharp.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Data.SqlClient">
-      <HintPath>..\packages\FSharp.Data.SqlClient.1.5.5\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\FSharp.Data.SqlClient.1.5.5\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
     </Reference>
-    <Reference Include="FSharp.Data.TypeProviders, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="FSharpx.Core">
-      <HintPath>..\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
     </Reference>
     <Reference Include="FSharpx.TypeProviders.AppSettings">
-      <HintPath>..\packages\FSharpx.TypeProviders.AppSettings.1.8.41\lib\40\FSharpx.TypeProviders.AppSettings.dll</HintPath>
+      <HintPath>C:\dev\bitcoinfs\packages\FSharpx.TypeProviders.AppSettings.1.8.41\lib\40\FSharpx.TypeProviders.AppSettings.dll</HintPath>
+    </Reference>
+    <Reference Include="FsUnit.CustomMatchers">
+      <HintPath>packages\Fs30Unit.MsTest.Sample.1.3.0.1\Lib\Net40\FsUnit.CustomMatchers.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.3.0.1\Lib\Net40\FsUnit.NUnit.dll</HintPath>
+    <Reference Include="FsUnit.MsTest">
+      <HintPath>packages\Fs30Unit.MsTest.Sample.1.3.0.1\Lib\Net40\FsUnit.MsTest.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="LevelDBDotNet">
+      <HintPath>..\LevelDB\Debug\LevelDBDotNet.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
-      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.Types">
-      <HintPath>..\packages\Microsoft.SqlServer.Types.11.0.0\lib\net20\Microsoft.SqlServer.Types.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\FSharp.Data.SqlClient.1.5.5\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="MoreLinq">
-      <HintPath>..\packages\morelinq.2.0.0-alpha01\lib\net35\MoreLinq.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\morelinq.2.0.0-alpha01\lib\net35\MoreLinq.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
     <Reference Include="MurmurHash">
-      <HintPath>..\packages\murmurhash.1.0.0\lib\net45\MurmurHash.dll</HintPath>
+      <HintPath>C:\dev\bitcoinfs\packages\murmurhash.1.0.0\lib\net45\MurmurHash.dll</HintPath>
+    </Reference>
+    <Reference Include="NHamcrest">
+      <HintPath>packages\Fs30Unit.MsTest.Sample.1.3.0.1\Lib\Net40\NHamcrest.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NodaTime">
-      <HintPath>..\packages\NodaTime.1.3.0\lib\net35-Client\NodaTime.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\NodaTime.1.3.0\lib\net35-Client\NodaTime.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Secp256k1.NET">
+      <HintPath>..\Secp256k1\x64\Debug\Secp256k1.NET.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Linq" />
     <Reference Include="System.Data.SQLite">
-      <HintPath>..\packages\System.Data.SQLite.Core.MSIL.1.0.94.0\lib\net45\System.Data.SQLite.dll</HintPath>
+      <HintPath>packages\System.Data.SQLite.Core.1.0.94.0\lib\net451\System.Data.SQLite.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6">
+      <HintPath>packages\System.Data.SQLite.EF6.1.0.94.0\lib\net451\System.Data.SQLite.EF6.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq">
+      <HintPath>packages\System.Data.SQLite.Linq.1.0.94.1\lib\net451\System.Data.SQLite.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Reactive.Core">
-      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Interfaces">
-      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Linq">
-      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.PlatformServices">
-      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>C:\dev\bitcoinfs\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
-    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\experimental\leveldb-sharp\leveldb-sharp.csproj">
-      <Name>leveldb-sharp</Name>
-      <Project>{8dd96596-38ac-46dd-80c1-75d9ebe585ea}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\experimental\Secp256k1.NET\Secp256k1.NET.vcxproj">
-      <Name>Secp256k1.NET</Name>
-      <Project>{fc8f0bd7-6066-4e47-aa84-e48dd0beb46d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets')" />
+  <Import Project="packages\System.Data.SQLite.Core.1.0.94.0\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('packages\System.Data.SQLite.Core.1.0.94.0\build\net451\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets'))" />
+    <Error Condition="!Exists('packages\System.Data.SQLite.Core.1.0.94.0\build\net451\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.Data.SQLite.Core.1.0.94.0\build\net451\System.Data.SQLite.Core.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
